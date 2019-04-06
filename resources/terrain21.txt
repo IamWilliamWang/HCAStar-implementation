@@ -1,0 +1,5 @@
+# terrain21: Question 2 Example
+0 0 1 0
+0 0 0 0
+0 1 1 0
+0 0 0 0
