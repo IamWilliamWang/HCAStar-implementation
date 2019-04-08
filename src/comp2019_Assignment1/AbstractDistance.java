@@ -1,5 +1,8 @@
 package comp2019_Assignment1;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 /**
  * This class finds the abstract distance from any location to the agent's goal.
  * This distance is used as the heuristic estimate in the HCA* search.
@@ -30,7 +33,13 @@ public class AbstractDistance {
 
         //  You may be able to reuse your Question 1 A* implementation here
 
-        // not yet implemented
-        throw new UnsupportedOperationException();
+    	// RRA*算法
+    	MyRRA myRRA = new MyRRA(agentInitialLoc, agentGoal, map);
+    	if(myRRA.closedList.contains(loc))
+    		return loc.getG();
+    	if(myRRA.ResumeRRAStar(loc))
+    		return loc.getG();
+    	return INFINITY;
     }
+    
 }

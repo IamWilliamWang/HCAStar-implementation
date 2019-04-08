@@ -60,7 +60,7 @@ public class PathFinder {
 		}
 
 		Path shortestPath = new Path(this.start); //最短路径
-		Location finalLocation = findGoalLocation(); //找到最终节点
+		Location finalLocation = generateLocationTree(); //找到最终节点
 		if (finalLocation == null) //节点为空说明没找到
 			return null;
 		for (Location lo : getFullPath(finalLocation)) //根据目标Location生成完整路径，并遍历
@@ -84,13 +84,13 @@ public class PathFinder {
 	}
 
 	/**
-	 * 查找路径
-	 * @return 如果找到则返回goal，否则返回null
+	 * 生成Location树，并对每个节点F进行赋值。
+	 * @return 如果找到goal，说明成功则返回goal。否则返回null
 	 */
-	public Location findGoalLocation() {
+	public Location generateLocationTree() {
 		Location endNode = null;// 终点
-		ArrayList<Location> openList = new ArrayList<Location>(); //开放的Location
-		ArrayList<Location> closeList = new ArrayList<Location>(); //闭塞的Location
+		ArrayList<Location> openList = new ArrayList<Location>(); //待处理的节点
+		ArrayList<Location> closeList = new ArrayList<Location>(); //已处理过的节点
 		// 把起点放入open列表中
 		Location startNode = this.start;
 		openList.add(startNode);
@@ -103,7 +103,7 @@ public class PathFinder {
 			if (currentMinFNode.equals(this.goal)) { // 当前节点是目标节点
 				endNode = currentMinFNode;
 				break;
-			} else {// 搜索4个方向并进行处理
+			} else { // 搜索4个方向并进行处理，添加周围四个方向的**新节点**到open列表
 				// 东
 				handleChildNode(currentMinFNode, currentMinFNode.getRow(), currentMinFNode.getColumn() + 1, openList, closeList);
 				// 南
@@ -116,7 +116,7 @@ public class PathFinder {
 		}
 		return endNode;
 	}
-
+	
 	/* 处理每个方向的子节点 */
 	private void handleChildNode(Location currentMinFNode, int rowIndex, int colIndex, ArrayList<Location> openList,
 			ArrayList<Location> closeList) {
@@ -160,8 +160,8 @@ public class PathFinder {
 	 */
 	private int getCurrentF(int curRow, int curCol) {
 		// 启发函数表达为f(n)=g(n)+h(n)
-		int g = Math.abs(this.start.getRow() - curRow) + Math.abs(this.start.getColumn() - curCol);
-		int h = Math.abs(this.goal.getRow() - curRow) + Math.abs(this.goal.getColumn() - curCol);
+		int g = PathFinder.manhattanDistance(this.start, curRow, curCol);
+		int h = PathFinder.manhattanDistance(this.goal, curRow, curCol);
 		return g + h;
 		//(5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,5)(2,6)(2,7)(1,7)(0,7)(0,6)(0,5)(0,4)(0,3)(0,2)(0,1)(0,0)
 	}
@@ -169,9 +169,23 @@ public class PathFinder {
 	/* 另一种启发函数，g使用上一节点的F + 1 */
 	private int getCurrentF(int curRow, int curCol, Location curMinFNode) {
 		int g = curMinFNode.getF()+1;
-		int h = Math.abs(this.goal.getRow() - curRow) + Math.abs(this.goal.getColumn() - curCol);
+		int h = PathFinder.manhattanDistance(this.goal, curRow, curCol);
 		return g + h;
 		//(5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,3)(2,2)(3,2)(4,2)(5,2)(5,1)(5,0)(4,0)(3,0)(2,0)(1,0)(0,0)
 	}
+	
+	/**
+	 * 求曼哈顿距离
+	 */
+	public static int manhattanDistance(Location location1, Location location2) {
+		return manhattanDistance(location1.getRow(),location1.getColumn(),location2.getRow(),location2.getColumn());
+	}
 
+	public static int manhattanDistance(Location location1, int location2Row, int location2Col) {
+		return manhattanDistance(location1.getRow(),location1.getColumn(), location2Row, location2Col);
+	}
+	
+	public static int manhattanDistance(int location1Row, int location1Col,int location2Row,int location2Col) {
+		return Math.abs(location1Row-location2Row) + Math.abs(location1Col-location2Col);
+	}
 }
