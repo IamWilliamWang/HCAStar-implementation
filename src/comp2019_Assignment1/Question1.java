@@ -12,7 +12,7 @@ public class Question1 {
 
         Location start = new Location(Integer.parseInt(args[1]),Integer.parseInt(args[2]));
         Location goal = new Location(Integer.parseInt(args[3]),Integer.parseInt(args[4]));
-	
+
         PathFinder pathFinder = new PathFinder(map, start, goal);
         Path path = pathFinder.findPath();
         if (path != null) {
