@@ -1,11 +1,9 @@
 package comp2019_Assignment1;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class finds the abstract distance from any location to the agent's goal.
@@ -39,56 +37,86 @@ public class AbstractDistance {
 		// Return INFINITY if there there is no feasible path fro agentGoal to loc.
 
 		// You may be able to reuse your Question 1 A* implementation here
-		if (myRRA.closedList.contains(loc))
+		if (myRRA.closedList.contains(loc)) // 如果close列表中有，直接返回g
 			return this.findLocationInOpenClosedMap(loc).getG();
-		if (myRRA.ResumeRRAStar(loc))
+		if (myRRA.resumeRRAStar(loc)) // 如果没有，就继续执行，直到搜索loc完成
 			return this.findLocationInOpenClosedMap(loc).getG();
 		return INFINITY;
 	}
 
-	// 以下是找openList或closedList中和neededLocation的行、列相同的Location，名为locationInMap
+	/**
+	 * 找openList或closedList中和neededLocation的行、列相同的Location。
+	 * 此函数的由来是因为needLocation完全是由Agent.location而来，只储存了row、col而没有f、g、h的信息
+	 * 
+	 * @param neededLocation 含有坐标信息的Location
+	 * @return 含有f、g、h信息的Location
+	 */
 	private Location findLocationInOpenClosedMap(Location neededLocation) {
-		Location locationInMap = null;
-		Predicate<Location> predicate = location -> location.equals(neededLocation); // 函数的核心判别表达式
-		List<Location> locationsInMap = myRRA.openList.stream().filter(predicate).collect(Collectors.toList());
-		if (locationsInMap.isEmpty()) { // open没找到，接着在closed里找
-			locationsInMap = myRRA.closedList.stream().filter(predicate).collect(Collectors.toList());
-			if (!locationsInMap.isEmpty())
-				locationInMap = locationsInMap.get(0);
-		} else
-			locationInMap = locationsInMap.get(0);
-		return locationInMap;
+		Predicate<Location> predicateEqual = location -> location.equals(neededLocation); // 函数的核心判别表达式
+		// 这个List里只可能有1个或者0个元素
+		List<Location> locationsInList = myRRA.openList.stream().filter(predicateEqual).collect(Collectors.toList());
+		if (locationsInList.isEmpty()) { // openList没找到，接着在closed里找
+			locationsInList = myRRA.closedList.stream().filter(predicateEqual).collect(Collectors.toList());
+			if (!locationsInList.isEmpty())
+				return locationsInList.get(0);
+		} else // 找到了就返回该Location
+			return locationsInList.get(0);
+		return null;
 	}
 
+	/**
+	 * 在currentLocation周边搜索g为g值的Location
+	 * 
+	 * @param currentLocation
+	 * @param g
+	 * @return
+	 */
 	private Location findRoundLocationByG(Location currentLocation, int g) {
-		Location locationInMap = null;
-		Location culo = currentLocation; //缩写
-		Predicate<Location> predicate = eleLoc -> // 找上下左右四个邻接
-		(culo.getColumn() == eleLoc.getColumn() && Math.abs(culo.getRow() - eleLoc.getRow()) == 1)
-				|| (culo.getRow() == eleLoc.getRow() && Math.abs(culo.getColumn() - eleLoc.getColumn()) == 1);
-		Predicate<Location> predicate2 = eleLoc -> eleLoc.getG() == g; // elementLocation.g要等于g
-		if(g==-1) //-1表任意值，取消第二条限制
-			throw new RuntimeException("Illegeal g!");
-		List<Location> locationsInMap = myRRA.openList.stream().filter(predicate).filter(predicate2)
+		Predicate<Location> predicateSquare = // 找上下左右四个邻接
+				eleLoc -> (currentLocation.getColumn() == eleLoc.getColumn()
+						&& Math.abs(currentLocation.getRow() - eleLoc.getRow()) == 1)
+						|| (currentLocation.getRow() == eleLoc.getRow()
+								&& Math.abs(currentLocation.getColumn() - eleLoc.getColumn()) == 1);
+		Predicate<Location> predicateG = eleLoc -> eleLoc.getG() == g; // elementLocation.g要等于g
+//		if(g==-1) //-1表任意值，取消第二条限制
+//			throw new RuntimeException("Illegeal g!");
+		List<Location> locationsInList = myRRA.openList.stream().filter(predicateSquare).filter(predicateG)
 				.collect(Collectors.toList());
-		if (locationsInMap.isEmpty()) { // open没找到，接着在closed里找
-			locationsInMap = myRRA.closedList.stream().filter(predicate).filter(predicate2)
+		if (locationsInList.isEmpty()) { // open没找到，接着在closed里找
+			locationsInList = myRRA.closedList.stream().filter(predicateSquare).filter(predicateG)
 					.collect(Collectors.toList());
-			if (!locationsInMap.isEmpty())
-				locationInMap = locationsInMap.get(0);
+			if (!locationsInList.isEmpty())
+				return locationsInList.get(0);
 		} else
-			locationInMap = locationsInMap.get(0);
-		return locationInMap;
+			return locationsInList.get(0);
+		return null;
 	}
 
-	public Location findNextStep(Location currentLocation) { // 注意这里的location是Agent的location，fgh有可能为空
+	/**
+	 * 根据当前Location寻找下一步离终点更近的地点
+	 * 
+	 * @param currentLocation
+	 * @return
+	 */
+	public Location findNextStep(Location currentLocation) { // 注意这里的location是Agent的location，fgh有可能为MAX_VALUE
 //		Location locationInMap = findLocationInOpenClosedMap(currentLocation);
 //		int nowG = locationInMap == null ? 0 : locationInMap.getG();
-		int nowG = this.distance(currentLocation); //使用distance就不用担心为空的情况
+		int nowG = this.distance(currentLocation); // 使用distance就不用担心为空的情况
 		int nextG = nowG - 1;
 		return findRoundLocationByG(currentLocation, nextG);
 	}
 
+	@Override
+	public String toString() {
+		return this.myRRA.toString();
+	}
+
+	/**
+	 * 实现了RRA*算法，论文中伪代码的java实现版本
+	 * 
+	 * @author William
+	 *
+	 */
 	private class RRAStar {
 		LinkedList<Location> openList = new LinkedList<Location>();
 		LinkedList<Location> closedList = new LinkedList<Location>();
@@ -98,26 +126,41 @@ public class AbstractDistance {
 
 		public RRAStar(Location agentInit, Location agentGoal, RectangularMap map) {
 			this.map = map;
-			InitialiseRRAStar(agentInit, agentGoal);
+			initialiseRRAStar(agentInit, agentGoal);
 		}
 
-		private void InitialiseRRAStar(Location O, Location G) {
+		/**
+		 * 初始化RRA*
+		 * 
+		 * @param O Agent初始点
+		 * @param G Agent目标点
+		 */
+		private void initialiseRRAStar(Location O, Location G) {
 			this.agentInit = O;
 			this.agentGoal = G;
 			G.setG(0);
 			G.setH(PathFinder.manhattanDistance(G, O));
 			openList.add(G);
-			ResumeRRAStar(O);
+			resumeRRAStar(O);
 		}
 
-		boolean ResumeRRAStar(Location expandedNode) { // 'N' in paper
-			while (!openList.isEmpty()) {
+		/**
+		 * 继续RRA*拓展
+		 * 
+		 * @param expandedNode 需要拓展到的节点
+		 * @return
+		 */
+		boolean resumeRRAStar(Location expandedNode) { // 'N' in paper
+			while (!openList.isEmpty()) { // 不为空就循环
 				Location currentLocation = openList.pop();
 				closedList.add(currentLocation);
-				if (currentLocation.equals(expandedNode))
+				if (currentLocation.equals(expandedNode)) {
+					closedList.remove(currentLocation); //不直接返回会出bug，这里把目标节点重新加入openList是向让目标节点后边的部分可以在下次调用该函数时也能遍历到
+					openList.add(currentLocation);
 					return true;
-				for (Location newLocation : Successors(currentLocation)) {
-					newLocation.setG(currentLocation.getG() + Cost(currentLocation, newLocation));
+				}
+				for (Location newLocation : getSuccessors(currentLocation)) {
+					newLocation.setG(currentLocation.getG() + getCost(currentLocation, newLocation));
 					newLocation.setH(PathFinder.manhattanDistance(newLocation, this.agentInit));
 					if (!openList.contains(newLocation) && !closedList.contains(newLocation)) {
 						openList.add(newLocation);
@@ -138,11 +181,23 @@ public class AbstractDistance {
 			return false;
 		}
 
+		/**
+		 * 判断是否可以通过，因为论文中RRA*算法中忽略其他agent，所以只需要判断这里是不是墙
+		 * 
+		 * @param location
+		 * @return
+		 */
 		private boolean canPass(Location location) {
 			return (map.getValueAt(location) == 0);
 		}
 
-		private List<Location> Successors(Location location) {
+		/**
+		 * 论文中的SUCCESSORS函数
+		 * 
+		 * @param location
+		 * @return
+		 */
+		private List<Location> getSuccessors(Location location) {
 			// TODO Auto-generated method stub
 			LinkedList<Location> successors = new LinkedList<Location>();
 			for (Location loc : map.getNeighbours(location))
@@ -151,13 +206,22 @@ public class AbstractDistance {
 			return successors;
 		}
 
-		// 不知道cost=1还是要用PathFinder求cost
-		private int Cost(Location location1, Location location2) {
+		/**
+		 * 求两地之间的cost
+		 * 
+		 * @param location1
+		 * @param location2
+		 * @return
+		 */
+		private int getCost(Location location1, Location location2) {
 			// TODO Auto-generated method stub
+			// return PathFinder.manhattanDistance(location1, location2); //假设两地点挨着
 			return new PathFinder(map, location1, location2).findPath().getCost();
-			// return PathFinder.manhattanDistance(location1, location2);
 		}
 
+		/**
+		 * 在地图上输出所有已经赋值的g
+		 */
 		@Override
 		public String toString() {
 			// TODO Auto-generated method stub

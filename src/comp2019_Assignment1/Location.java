@@ -12,11 +12,11 @@ package comp2019_Assignment1;
  */
 public class Location {
 	private int row, column;
-	// 可直接setF、getF。也可以setG、setH、getF。两套使用方法不交叉，数据不共存
-	private int f = Integer.MAX_VALUE; // 储存该节点的F
-	private int g = Integer.MAX_VALUE;
+	// 直接赋值f的时候g和h变成MAX_VALUE，这样只能返回f。或者对g和h进行赋值，f自动变为g+h。两套使用方法不交叉，数据不共存
+	private int f = Integer.MAX_VALUE; // 储存该节点的f
+	private int g = Integer.MAX_VALUE; 
 	private int h = Integer.MAX_VALUE;
-	private Location father = null; // 储存父亲节点
+	private Location father = null; // 储存父亲节点，仅用于Question1
 
 	public Location(int row, int column) {
 		this.row = row;
