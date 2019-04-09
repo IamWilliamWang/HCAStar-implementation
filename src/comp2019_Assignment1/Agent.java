@@ -11,12 +11,14 @@ package comp2019_Assignment1;
  */
 public class Agent {
     private Location start, goal;
+    private Location current;
     private int priority;
 
     public Agent(int priority, Location start, Location goal) {
         this.priority = priority;
         this.start = start;
         this.goal = goal;
+        this.current = this.start;
     }
 
     public int getPriority() {
@@ -33,6 +35,14 @@ public class Agent {
 
 	public String getName() {
 		return "Agent " + priority;
+	}
+	
+	public Location getLocation() {
+		return current;
+	}
+
+	public void setLocation(Location current) {
+		this.current = current;
 	}
 	
     @Override
