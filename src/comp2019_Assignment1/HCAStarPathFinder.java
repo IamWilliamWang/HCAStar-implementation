@@ -58,7 +58,7 @@ public class HCAStarPathFinder {
 		// Implement HCA* algorithm and use class AbstractDistance as the heuristic
 		// distance estimator
 		// You will need to implement the RRA* algorithm in AbstractDistance.
-
+		int stepCount = 0;
 		distanceMaps = new LinkedList<AbstractDistance>(); //初始化
 		int agentCount = this.agents.size();
 		movedThisRound = new boolean[agentCount]; //初始化boolean数组
@@ -72,6 +72,9 @@ public class HCAStarPathFinder {
 		// 如果有agent没到达终点就继续
 		while (!allAgentArrived()) {
 			clearMovedThisRound();
+			stepCount++;
+			if(stepCount>this.maxTimeSteps)
+				return null;
 			// 每个回合这几个agents都要动一下
 			for (int agentI = 0; agentI < this.agents.size(); agentI++) {
 				Agent currentAgent = agents.get(agentI);
@@ -103,6 +106,8 @@ public class HCAStarPathFinder {
 	 * @return
 	 */
 	private Agent getAgentAt(Location location) {
+		if(location==null)
+			return null;
 		List<Agent> foundAgent = this.agents.stream().filter(agent -> agent.getLocation().equals(location))
 				.collect(Collectors.toList());
 		if (foundAgent.isEmpty())
@@ -122,7 +127,7 @@ public class HCAStarPathFinder {
 		if (conflictAgent != null) { //如果有冲突
 			if (conflictAgent.getPriority() < currentAgent.getPriority()) //如果该地点优先级更高
 				return false; //移动失败
-			if (goAway(conflictAgent) == false) //命令让冲突agent走开
+			if (goAway(conflictAgent, currentAgent) == false) //命令让冲突agent走开
 				throw new RuntimeException("Somebody cannot move!");
 		}
 		currentAgent.setLocation(nextStep); //设定location为nextStep
@@ -136,7 +141,7 @@ public class HCAStarPathFinder {
 	}
 	
 	/**
-	 * 判断该地点能不能通行
+	 * 判断该地点能不能通行，包括检测agent
 	 * @param row
 	 * @param col
 	 * @param currentAgent
@@ -161,7 +166,7 @@ public class HCAStarPathFinder {
 	 * @param kickedAgent 被踢的agent
 	 * @return 是否被踢成功
 	 */
-	private boolean goAway(Agent kickedAgent) {
+	private boolean goAway(Agent kickedAgent, Agent bullyAgent) {
 		Location nowLocation = kickedAgent.getLocation();
 		if (canPass(nowLocation.getRow() + 1, nowLocation.getColumn(), kickedAgent)) { // 如果下面可以通过
 			if (moveTo(kickedAgent, nowLocation.getRow() + 1, nowLocation.getColumn(), nowLocation)) { //向下方移动一格
@@ -180,6 +185,11 @@ public class HCAStarPathFinder {
 				return true;
 			}
 		}
+//		if(this.getNextStep(bullyAgent).equals(kickedAgent.getLocation())) { //越过冲突检测，强制移动kickedAgent
+//			kickedAgent.setLocation(bullyAgent.getLocation());
+//			this.agentPaths.get(this.getAgentIndex(kickedAgent)).moveTo(bullyAgent.getLocation());
+//			this.movedThisRound[getAgentIndex(kickedAgent)] = true;
+//		}
 		return false; // Blocked at a corder or surrounded by bullies.
 	}
 

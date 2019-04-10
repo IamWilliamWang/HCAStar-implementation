@@ -20,6 +20,8 @@ public class PathFinder {
 	private Location start; // start location
 	private Location goal; // goal location
 	private RectangularMap map; // the map
+	private ArrayList<Location> openList;
+	private ArrayList<Location> closeList;
 
 	public PathFinder(RectangularMap map, Location start, Location goal) {
 		this.map = map;
@@ -87,8 +89,8 @@ public class PathFinder {
 	 */
 	public Location generateLocationTree() {
 		Location endLocation = null;// 终点
-		ArrayList<Location> openList = new ArrayList<Location>(); // 待处理的节点
-		ArrayList<Location> closeList = new ArrayList<Location>(); // 已处理过的节点
+		openList = new ArrayList<Location>(); // 待处理的节点
+		closeList = new ArrayList<Location>(); // 已处理过的节点
 		// 把起点放入open列表中
 		openList.add(this.start);
 		int tryCount = 0; // 储存循环次数，调试用，无实际用途
@@ -179,6 +181,23 @@ public class PathFinder {
 		// (5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,3)(2,2)(3,2)(4,2)(5,2)(5,1)(5,0)(4,0)(3,0)(2,0)(1,0)(0,0)
 	}
 
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		int[][] locationGs = new int[this.map.getRows()][this.map.getColumns()];
+		for (Location lo : this.openList)
+			locationGs[lo.getRow()][lo.getColumn()] = lo.getF();
+		for (Location lo : this.closeList)
+			locationGs[lo.getRow()][lo.getColumn()] = lo.getF();
+		StringBuilder sb = new StringBuilder();
+		for (int row = 0; row < locationGs.length; row++) {
+			for (int col = 0; col < locationGs[0].length; col++)
+				sb.append(locationGs[row][col] + " ");
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+	
 	/**
 	 * 求曼哈顿距离
 	 */

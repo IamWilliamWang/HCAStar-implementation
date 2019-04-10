@@ -1,6 +1,9 @@
+# IDE settings
 .idea/
 .settings/
+*.iml
+# Compressed files
 *.zip
 *.rar
-*.iml
+# Documents
 *.pdf
