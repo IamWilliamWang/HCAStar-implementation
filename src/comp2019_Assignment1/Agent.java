@@ -1,7 +1,5 @@
 package comp2019_Assignment1;
 
-import javax.management.DescriptorKey;
-
 /**
  * This class represents an Agent.
  * Each agent has a unique priority, a start location, and a goal location.

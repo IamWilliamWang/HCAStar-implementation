@@ -80,8 +80,6 @@ public class AbstractDistance {
 						|| (currentLocation.getRow() == eleLoc.getRow()
 								&& Math.abs(currentLocation.getColumn() - eleLoc.getColumn()) == 1);
 		Predicate<Location> predicateG = eleLoc -> eleLoc.getG() == g; // elementLocation.g要等于g
-//		if(g==-1) //-1表任意值，取消第二条限制
-//			throw new RuntimeException("Illegeal g!");
 		List<Location> locationsInList = myRRA.openList.stream().filter(predicateSquare).filter(predicateG)
 				.collect(Collectors.toList());
 		if (locationsInList.isEmpty()) { // open没找到，接着在closed里找
@@ -101,8 +99,6 @@ public class AbstractDistance {
 	 * @return
 	 */
 	public Location findNextStep(Location currentLocation) { // 注意这里的location是Agent的location，fgh有可能为MAX_VALUE
-//		Location locationInMap = findLocationInOpenClosedMap(currentLocation);
-//		int nowG = locationInMap == null ? 0 : locationInMap.getG();
 		int nowG = this.distance(currentLocation); // 使用distance就不用担心为空的情况
 		int nextG = nowG - 1;
 		return findRoundLocationByG(currentLocation, nextG);
