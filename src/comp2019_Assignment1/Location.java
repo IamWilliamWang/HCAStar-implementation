@@ -38,6 +38,7 @@ public class Location {
 		return this.f;
 	}
 
+	@Deprecated
 	public void setF(int f) {
 		this.f = f;
 		this.g = Integer.MAX_VALUE;
@@ -58,6 +59,10 @@ public class Location {
 
 	public void setG(int g) {
 		this.g = g;
+	}
+
+	public int getH() {
+		return h;
 	}
 
 	public void setH(int h) {

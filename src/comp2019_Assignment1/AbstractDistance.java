@@ -217,8 +217,8 @@ public class AbstractDistance {
 		 */
 		private int getCost(Location location1, Location location2) {
 			// TODO Auto-generated method stub
-			// return PathFinder.manhattanDistance(location1, location2); //假设两地点挨着
-			return new PathFinder(map, location1, location2).findPath().getCost();
+			return PathFinder.manhattanDistance(location1, location2); // 调用场景适用于两地点挨着，所以一直会是1
+			// return new PathFinder(map, location1, location2).findPath().getCost(); // 过于占用内存，浪费时间。
 		}
 
 		/**
