@@ -3,8 +3,8 @@ package comp2019_Assignment1;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.swing.text.DefaultEditorKit.CutAction;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This class finds the best path from a start location to the goal location
@@ -21,7 +21,7 @@ public class PathFinder {
 	private Location goal; // goal location
 	private RectangularMap map; // the map
 	private ArrayList<Location> openList;
-	private ArrayList<Location> closeList;
+	private ArrayList<Location> closedList;
 
 	public PathFinder(RectangularMap map, Location start, Location goal) {
 		this.map = map;
@@ -90,31 +90,33 @@ public class PathFinder {
 	public Location generateLocationTree() {
 		Location endLocation = null;// 终点
 		openList = new ArrayList<Location>(); // 待处理的节点
-		closeList = new ArrayList<Location>(); // 已处理过的节点
+		closedList = new ArrayList<Location>(); // 已处理过的节点
 		// 把起点放入open列表中
+		this.start.setG(0);
+		this.start.setH(manhattanDistance(this.start,this.goal));
 		openList.add(this.start);
 		int tryCount = 0; // 储存循环次数，调试用，无实际用途
 		while (openList.size() != 0) { // 如果openList不为空就一直循环
 			tryCount++;
 			Location currentLocation = getMinFLocation(openList); // 获取F值最小的Location
 			openList.remove(currentLocation);// 从open列表中移除后
-			closeList.add(currentLocation);// 加入到close列表中
+			closedList.add(currentLocation);// 加入到close列表中
 			if (currentLocation.equals(this.goal)) { // 当前节点是目标节点
 				endLocation = currentLocation; // 记录目标节点
 				break;
 			} else { // 搜索4个方向并进行处理，添加周围四个方向的新节点到open列表
 				// 东
 				handleChildNode(currentLocation, currentLocation.getRow(), currentLocation.getColumn() + 1, openList,
-						closeList);
+						closedList);
 				// 南
 				handleChildNode(currentLocation, currentLocation.getRow() + 1, currentLocation.getColumn(), openList,
-						closeList);
+						closedList);
 				// 西
 				handleChildNode(currentLocation, currentLocation.getRow(), currentLocation.getColumn() - 1, openList,
-						closeList);
+						closedList);
 				// 北
 				handleChildNode(currentLocation, currentLocation.getRow() - 1, currentLocation.getColumn(), openList,
-						closeList);
+						closedList);
 			}
 		}
 		return endLocation;
@@ -123,17 +125,48 @@ public class PathFinder {
 	/**
 	 * 处理每个方向的子节点，
 	 */
-	private void handleChildNode(Location currentLocation, int rowIndex, int colIndex, ArrayList<Location> openList,
+	private void handleChildNode(Location currentLocation, int childRowIndex, int childColIndex, ArrayList<Location> openList,
 			ArrayList<Location> closedList) {
 		Location child = null; // 子节点
-		if (canPass(rowIndex, colIndex)) { // 如果该位置能通过
-			child = new Location(rowIndex, colIndex); // 生成该位置上的新节点
+		if (canPass(childRowIndex, childColIndex)) { // 如果该位置能通过
+			child = new Location(childRowIndex, childColIndex); // 生成该位置上的新节点
+			child.setG(currentLocation.getG()+1);
+			child.setH(manhattanDistance(this.goal,childRowIndex,childColIndex));
 			if (!openList.contains(child) && !closedList.contains(child)) { // 如果是个全新的节点（未在open、closed表中出现）
-				child.setF(getChildF(rowIndex, colIndex, currentLocation)); // 将F值赋值
+//				child.setF(getChildF(childRowIndex, childColIndex, currentLocation)); // 将F值赋值
 				child.setFather(currentLocation); // 储存父亲节点
 				openList.add(child); // 添加至open列表中
+			} else { // 不是全新的节点
+				Location conflictLocation = this.findLocationInOpenClosedMap(child);
+				if(conflictLocation==null)
+					throw new RuntimeException("Unexpected error occurred.");
+				if(conflictLocation.getF()>child.getF()) {
+					conflictLocation.setG(child.getG());
+					conflictLocation.setH(child.getH());
+					conflictLocation.setFather(currentLocation);
+				}
 			}
 		}
+	}
+
+	/**
+	 * 找openList或closedList中和neededLocation的行、列相同的Location。
+	 * 此函数的由来是因为needLocation完全是由Agent.location而来，只储存了row、col而没有f、g、h的信息
+	 *
+	 * @param neededLocation 含有坐标信息的Location
+	 * @return 含有f、g、h信息的Location
+	 */
+	private Location findLocationInOpenClosedMap(Location neededLocation) {
+		Predicate<Location> predicateEqual = location -> location.equals(neededLocation); // 函数的核心判别表达式
+		// 这个List里只可能有1个或者0个元素
+		List<Location> locationsInList = openList.stream().filter(predicateEqual).collect(Collectors.toList());
+		if (locationsInList.isEmpty()) { // openList没找到，接着在close里找
+			locationsInList = closedList.stream().filter(predicateEqual).collect(Collectors.toList());
+			if (!locationsInList.isEmpty())
+				return locationsInList.get(0);
+		} else // 找到了就返回该Location
+			return locationsInList.get(0);
+		return null;
 	}
 
 	/**
@@ -147,7 +180,7 @@ public class PathFinder {
 	}
 
 	/**
-	 * 判断该方块是否可通行
+	 * 判断该方块是否可通行，只判断数组越界
 	 */
 	private boolean canPass(int row, int col) {
 		int rowCount = map.getRows();
@@ -165,6 +198,7 @@ public class PathFinder {
 	 * @param curCol 列号
 	 * @return
 	 */
+	@Deprecated
 	private int getChildF(int curRow, int curCol) {
 		// 启发函数表达为f(n)=g(n)+h(n)
 		int g = PathFinder.manhattanDistance(this.start, curRow, curCol);
@@ -173,6 +207,7 @@ public class PathFinder {
 		// (5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,5)(2,6)(2,7)(1,7)(0,7)(0,6)(0,5)(0,4)(0,3)(0,2)(0,1)(0,0)
 	}
 
+	@Deprecated
 	/* 另一种启发函数，g使用上一节点的F + 1 */
 	private int getChildF(int curRow, int curCol, Location curMinFNode) {
 		int g = curMinFNode.getF() + 1;
@@ -187,7 +222,7 @@ public class PathFinder {
 		int[][] locationGs = new int[this.map.getRows()][this.map.getColumns()];
 		for (Location lo : this.openList)
 			locationGs[lo.getRow()][lo.getColumn()] = lo.getF();
-		for (Location lo : this.closeList)
+		for (Location lo : this.closedList)
 			locationGs[lo.getRow()][lo.getColumn()] = lo.getF();
 		StringBuilder sb = new StringBuilder();
 		for (int row = 0; row < locationGs.length; row++) {
