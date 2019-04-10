@@ -185,11 +185,6 @@ public class HCAStarPathFinder {
 				return true;
 			}
 		}
-//		if(this.getNextStep(bullyAgent).equals(kickedAgent.getLocation())) { //越过冲突检测，强制移动kickedAgent
-//			kickedAgent.setLocation(bullyAgent.getLocation());
-//			this.agentPaths.get(this.getAgentIndex(kickedAgent)).moveTo(bullyAgent.getLocation());
-//			this.movedThisRound[getAgentIndex(kickedAgent)] = true;
-//		}
 		return false; // Blocked at a corder or surrounded by bullies.
 	}
 

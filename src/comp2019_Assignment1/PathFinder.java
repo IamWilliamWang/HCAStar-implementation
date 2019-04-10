@@ -95,9 +95,7 @@ public class PathFinder {
 		this.start.setG(0);
 		this.start.setH(manhattanDistance(this.start,this.goal));
 		openList.add(this.start);
-		int tryCount = 0; // 储存循环次数，调试用，无实际用途
 		while (openList.size() != 0) { // 如果openList不为空就一直循环
-			tryCount++;
 			Location currentLocation = getMinFLocation(openList); // 获取F值最小的Location
 			openList.remove(currentLocation);// 从open列表中移除后
 			closedList.add(currentLocation);// 加入到close列表中
@@ -133,7 +131,6 @@ public class PathFinder {
 			child.setG(currentLocation.getG()+1);
 			child.setH(manhattanDistance(this.goal,childRowIndex,childColIndex));
 			if (!openList.contains(child) && !closedList.contains(child)) { // 如果是个全新的节点（未在open、closed表中出现）
-//				child.setF(getChildF(childRowIndex, childColIndex, currentLocation)); // 将F值赋值
 				child.setFather(currentLocation); // 储存父亲节点
 				openList.add(child); // 添加至open列表中
 			} else { // 不是全新的节点
@@ -189,31 +186,6 @@ public class PathFinder {
 		if (row >= 0 && row < rowCount && col >= 0 && col < colCount) // row、col在合理的范围内
 			return map.getValueAt(row, col) != 1; // 1是墙壁
 		return false; // 数组越界
-	}
-
-	/**
-	 * 获得指定位置节点f值，g、h都使用曼哈顿距离
-	 * 
-	 * @param curRow 行号
-	 * @param curCol 列号
-	 * @return
-	 */
-	@Deprecated
-	private int getChildF(int curRow, int curCol) {
-		// 启发函数表达为f(n)=g(n)+h(n)
-		int g = PathFinder.manhattanDistance(this.start, curRow, curCol);
-		int h = PathFinder.manhattanDistance(this.goal, curRow, curCol);
-		return g + h;
-		// (5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,5)(2,6)(2,7)(1,7)(0,7)(0,6)(0,5)(0,4)(0,3)(0,2)(0,1)(0,0)
-	}
-
-	@Deprecated
-	/* 另一种启发函数，g使用上一节点的F + 1 */
-	private int getChildF(int curRow, int curCol, Location curMinFNode) {
-		int g = curMinFNode.getF() + 1;
-		int h = PathFinder.manhattanDistance(this.goal, curRow, curCol);
-		return g + h;
-		// (5,7)(5,6)(6,6)(6,5)(6,4)(5,4)(4,4)(3,4)(2,4)(2,3)(2,2)(3,2)(4,2)(5,2)(5,1)(5,0)(4,0)(3,0)(2,0)(1,0)(0,0)
 	}
 
 	@Override
