@@ -72,6 +72,8 @@ public class AbstractDistance {
 	 * @return
 	 */
 	private Location findRoundLocationByG(Location currentLocation, int g) {
+		if(currentLocation==null)
+			return null;
 		Predicate<Location> predicateSquare = // 找上下左右四个邻接
 				eleLoc -> (currentLocation.getColumn() == eleLoc.getColumn()
 						&& Math.abs(currentLocation.getRow() - eleLoc.getRow()) == 1)
@@ -155,7 +157,7 @@ public class AbstractDistance {
 				Location currentLocation = openList.pop();
 				closedList.add(currentLocation);
 				if (currentLocation.equals(expandedNode)) {
-					closedList.remove(currentLocation); //不直接返回会出bug，这里把目标节点重新加入openList是向让目标节点后边的部分可以在下次调用该函数时也能遍历到
+					closedList.remove(currentLocation); // 论文中不直接返回会出bug，这里把目标节点重新加入openList是向让目标节点后边的部分可以在下次调用该函数时也能遍历到
 					openList.add(currentLocation);
 					return true;
 				}
