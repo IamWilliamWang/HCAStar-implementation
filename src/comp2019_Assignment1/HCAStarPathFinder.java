@@ -62,6 +62,7 @@ public class HCAStarPathFinder {
 		distanceMaps = new LinkedList<AbstractDistance>(); //初始化
 		int agentCount = this.agents.size();
 		movedThisRound = new boolean[agentCount]; //初始化boolean数组
+		waitTimes = new int[agentCount];
 		for (Agent agent : agents) //将agent.size()个距离表插入到distanceMaps
 			distanceMaps.add(new AbstractDistance(map, agent.getGoal(), agent.getStart()));
 		for (int i = 0; i < this.agents.size(); i++) { //初始化agentPaths
@@ -90,6 +91,8 @@ public class HCAStarPathFinder {
 		return this.agentPaths;
 	}
 
+
+	private int waitTimes[];
 	/**
 	 * 原地踏步一次
 	 * @param currentAgent
@@ -98,6 +101,32 @@ public class HCAStarPathFinder {
 		int agentIndex = this.getAgentIndex(currentAgent);
 		this.movedThisRound[agentIndex] = true; //这一回合走过了
 		this.agentPaths.get(agentIndex).moveTo(currentAgent.getLocation()); //原地踏了一步
+		waitTimes[agentIndex]++;
+		if(waitTimes[agentIndex]>10) //可以改成比较大的一个数，低于100
+			rebuildAgentPath(currentAgent);
+	}
+
+	private ArrayMap cloneRectangularMap(RectangularMap original) {
+		ArrayMap map = new ArrayMap(original.getRows(),original.getColumns());
+		for(int row=0;row<original.getRows();row++)
+			for(int col=0;col<original.getColumns();col++)
+				map.setValueAt(row,col,original.getValueAt(row,col));
+		return map;
+	}
+
+	// 强制删除阻塞Agent的所有储存信息，强制更新地图，调用第一问的结果
+	private void rebuildAgentPath(Agent currentAgent) {
+		int agentIndex = this.getAgentIndex(currentAgent);
+		Path agentPath = this.agentPaths.get(agentIndex);
+		Location deadLocation = agentPath.getLocation(1);
+		ArrayMap newMap = this.cloneRectangularMap(map);
+		newMap.setValueAt(deadLocation.getRow(),deadLocation.getColumn(),1);
+		this.distanceMaps.remove(agentIndex);
+		this.distanceMaps.add(agentIndex,new AbstractDistance(newMap, currentAgent.getGoal(),currentAgent.getStart()));
+		this.agentPaths.remove(agentIndex);
+		this.agentPaths.add(agentIndex, new PathFinder(newMap,currentAgent.getStart(),currentAgent.getGoal()).findPath());
+		currentAgent.setLocation(currentAgent.getGoal());
+		this.waitTimes[agentIndex] = 0;
 	}
 
 	/**

@@ -28,7 +28,7 @@ public class Question2 {
 		for(int i=0; i<agentList.size(); i++) {
 			Path agentPath = paths.get(i);
 			String agentName = agentList.get(i).getName();
-			System.out.println("Agent "+agentName+": "+agentPath);
+			System.out.println(agentName+": "+agentPath);
 		}	
 	}
 
