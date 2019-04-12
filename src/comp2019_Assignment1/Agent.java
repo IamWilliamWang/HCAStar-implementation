@@ -47,7 +47,8 @@ public class Agent {
 
     @Override
     public String toString() {
-        return getName() + "[start="+start+" goal="+goal+"]";
+    	//return getName() + "[start="+start+" goal="+goal+"]";
+    	return getName() + "[start="+start+" goal="+goal+" location="+current+"]";
     }
 }
 

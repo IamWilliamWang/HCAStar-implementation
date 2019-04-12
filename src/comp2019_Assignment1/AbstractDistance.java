@@ -38,9 +38,9 @@ public class AbstractDistance {
 
 		// You may be able to reuse your Question 1 A* implementation here
 		if (myRRA.closedList.contains(loc)) // 如果close列表中有，直接返回g
-			return this.findLocationInOpenClosedMap(loc).getG();
+			return this.findLocationInOpenClosedList(loc).getG();
 		if (myRRA.resumeRRAStar(loc)) // 如果没有，就继续执行，直到搜索loc完成
-			return this.findLocationInOpenClosedMap(loc).getG();
+			return this.findLocationInOpenClosedList(loc).getG();
 		return INFINITY;
 	}
 
@@ -51,7 +51,7 @@ public class AbstractDistance {
 	 * @param neededLocation 含有坐标信息的Location
 	 * @return 含有f、g、h信息的Location
 	 */
-	private Location findLocationInOpenClosedMap(Location neededLocation) {
+	private Location findLocationInOpenClosedList(Location neededLocation) {
 		Predicate<Location> predicateEqual = location -> location.equals(neededLocation); // 函数的核心判别表达式
 		// 这个List里只可能有1个或者0个元素
 		List<Location> locationsInList = myRRA.openList.stream().filter(predicateEqual).collect(Collectors.toList());
@@ -167,8 +167,10 @@ public class AbstractDistance {
 						try {
 							Location sameLocationInOpenList = openList.stream().filter(node -> node.equals(newLocation))
 									.collect(Collectors.toList()).get(0);
-							if (newLocation.getF() < sameLocationInOpenList.getF())
-								sameLocationInOpenList.setF(newLocation.getF());
+							if (newLocation.getF() < sameLocationInOpenList.getF()) {
+								sameLocationInOpenList.setG(newLocation.getG());
+								sameLocationInOpenList.setH(newLocation.getH());
+							}
 						} catch (Exception e) {
 							System.err.println("Unexpected error occurred!");
 							return false;

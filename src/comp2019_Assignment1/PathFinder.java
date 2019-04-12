@@ -73,11 +73,11 @@ public class PathFinder {
 	 * @return 用List储存的路径
 	 */
 	private List<Location> getFullPath(Location finalLocation) {
-		Location locationPointer = finalLocation;
+		Location current = finalLocation;
 		LinkedList<Location> shortestPathList = new LinkedList<>();
-		while (locationPointer.getFather() != null) { // 从最后的节点遍历到开始节点。开始节点.getFather()为空
-			shortestPathList.addFirst(locationPointer); // 插入链表最前端
-			locationPointer = locationPointer.getFather();
+		while (current.getFather() != null) { // 从最后的节点遍历到开始节点。开始节点.getFather()为空
+			shortestPathList.addFirst(current); // 插入链表最前端
+			current = current.getFather();
 		}
 		return shortestPathList;
 	}
@@ -93,9 +93,9 @@ public class PathFinder {
 		closedList = new ArrayList<Location>(); // 已处理过的节点
 		// 把起点放入open列表中
 		this.start.setG(0);
-		this.start.setH(manhattanDistance(this.start,this.goal));
+		this.start.setH(manhattanDistance(this.start, this.goal));
 		openList.add(this.start);
-		while (openList.size() != 0) { // 如果openList不为空就一直循环
+		while (!openList.isEmpty()) { // 如果openList不为空就一直循环
 			Location currentLocation = getMinFLocation(openList); // 获取F值最小的Location
 			openList.remove(currentLocation);// 从open列表中移除后
 			closedList.add(currentLocation);// 加入到close列表中
@@ -123,21 +123,21 @@ public class PathFinder {
 	/**
 	 * 处理每个方向的子节点，
 	 */
-	private void handleChildNode(Location currentLocation, int childRowIndex, int childColIndex, ArrayList<Location> openList,
-			ArrayList<Location> closedList) {
+	private void handleChildNode(Location currentLocation, int childRowIndex, int childColIndex,
+			ArrayList<Location> openList, ArrayList<Location> closedList) {
 		Location child = null; // 子节点
 		if (canPass(childRowIndex, childColIndex)) { // 如果该位置能通过
 			child = new Location(childRowIndex, childColIndex); // 生成该位置上的新节点
-			child.setG(currentLocation.getG()+1);
-			child.setH(manhattanDistance(this.goal,childRowIndex,childColIndex));
+			child.setG(currentLocation.getG() + 1);
+			child.setH(manhattanDistance(this.goal, childRowIndex, childColIndex));
 			if (!openList.contains(child) && !closedList.contains(child)) { // 如果是个全新的节点（未在open、closed表中出现）
 				child.setFather(currentLocation); // 储存父亲节点
 				openList.add(child); // 添加至open列表中
 			} else { // 不是全新的节点
-				Location conflictLocation = this.findLocationInOpenClosedMap(child);
-				if(conflictLocation==null)
+				Location conflictLocation = this.findLocationInOpenClosedList(child);
+				if (conflictLocation == null)
 					throw new RuntimeException("Unexpected error occurred.");
-				if(conflictLocation.getF()>child.getF()) {
+				if (conflictLocation.getF() > child.getF()) {
 					conflictLocation.setG(child.getG());
 					conflictLocation.setH(child.getH());
 					conflictLocation.setFather(currentLocation);
@@ -153,7 +153,7 @@ public class PathFinder {
 	 * @param neededLocation 含有坐标信息的Location
 	 * @return 含有f、g、h信息的Location
 	 */
-	private Location findLocationInOpenClosedMap(Location neededLocation) {
+	private Location findLocationInOpenClosedList(Location neededLocation) {
 		Predicate<Location> predicateEqual = location -> location.equals(neededLocation); // 函数的核心判别表达式
 		// 这个List里只可能有1个或者0个元素
 		List<Location> locationsInList = openList.stream().filter(predicateEqual).collect(Collectors.toList());
@@ -204,7 +204,7 @@ public class PathFinder {
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * 求曼哈顿距离
 	 */
