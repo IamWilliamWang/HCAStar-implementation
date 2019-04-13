@@ -1,6 +1,7 @@
 package comp2019_Assignment1;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a path on a map.
@@ -21,6 +22,15 @@ public class Path {
 
     public void moveTo(Location loc) {
         locations.add(loc);
+    }
+
+    public void appendLocations(List<Location> list) {
+        for(Location loc : list)
+            moveTo(loc);
+    }
+
+    public void appendLocations(Path path) {
+        appendLocations(path.locations);
     }
 
     public int getLength() {
