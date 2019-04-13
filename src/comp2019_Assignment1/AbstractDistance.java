@@ -104,6 +104,10 @@ public class AbstractDistance {
 		return findRoundLocationByG(currentLocation, nextG);
 	}
 
+	public List<Location>getSuccessors(Location location) {
+		return this.myRRA.getSuccessors(location);
+	}
+
 	@Override
 	public String toString() {
 		return this.myRRA.toString();

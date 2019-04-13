@@ -1,6 +1,7 @@
 package comp2019_Assignment1;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -61,8 +62,7 @@ public class PathFinder {
 		Location finalLocation = generateLocationTree(); // 找到最终节点
 		if (finalLocation == null) // 节点为空说明没找到
 			return null;
-		for (Location location : getFullPath(finalLocation)) // 根据目标Location生成完整路径，并遍历
-			shortestPath.moveTo(location); // 添加到shortestPath
+		shortestPath.appendLocations(getFullPath(finalLocation)); // 根据目标Location生成完整路径，并添加到shortestPath
 		return shortestPath;
 	}
 
@@ -173,7 +173,7 @@ public class PathFinder {
 	 * @return
 	 */
 	private Location getMinFLocation(ArrayList<Location> openList) {
-		return openList.stream().min((o1, o2) -> o1.getF() - o2.getF()).get();
+		return openList.stream().min(Comparator.comparingInt(Location::getF)).get();
 	}
 
 	/**
