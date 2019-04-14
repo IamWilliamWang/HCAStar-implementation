@@ -25,7 +25,7 @@ public class HCAStarPathFinder {
 		this.map = map;
 		this.agents = agents;
 		this.maxTimeSteps = maxTimeSteps;
-		this.agentPaths = new ArrayList<>(this.agents.size());
+		this.agentPaths = new ArrayList<Path>(this.agents.size());
 	}
 
 	public List<Agent> getAgents() {
@@ -49,7 +49,7 @@ public class HCAStarPathFinder {
 
 	List<AbstractDistance> distanceMaps; // 储存几个agent的距终点距离表
 	private boolean[] movedThisRound; // 各个agent在该回合是否移动
-	ArrayList<Path> agentPaths; // 储存agent走的路线
+	ArrayList<Path> agentPaths; // 储存agents走的路线
 
 	public List<Path> findPaths() {
 		//
@@ -69,7 +69,7 @@ public class HCAStarPathFinder {
 		for (int i = 0; i < this.agents.size(); i++) { // 初始化agentPaths
 			agentPaths.add(new Path(this.agents.get(i).getStart()));
 		}
-		this.agents.sort((o1, o2) -> o1.getPriority() - o2.getPriority()); // 使用优先级sort agents，注意在此题中priority越小越高
+		this.agents.sort(Comparator.comparingInt(Agent::getPriority)); // 使用优先级sort agents，注意在此题中priority越小越高
 
 		// 如果有agent没到达终点就继续
 		while (!allAgentArrived()) {
@@ -102,14 +102,11 @@ public class HCAStarPathFinder {
 	 * @return 是否移动成功
 	 */
 	private boolean moveTo(Agent currentAgent, Location nextStep, Location currentLocation) {
-		// Path被重建后禁止再移动
-//        if(pathRebuilded[getAgentIndex(currentAgent)]==true)
-//            return false;
 		Agent conflictAgent = getAgentAt(nextStep); // 获得nextStep上的冲突agent
 		if (conflictAgent != null) { // 如果有冲突
 			if (conflictAgent.getPriority() < currentAgent.getPriority()) // 如果该地点优先级更高
 				return false; // 移动失败
-			if (goAway(conflictAgent, currentAgent) == false) // 命令让冲突agent走开
+			if (goAway(conflictAgent) == false) // 命令让冲突agent走开
 				throw new RuntimeException("Somebody cannot move!");
 		}
 		currentAgent.setLocation(nextStep); // 设定location为nextStep
@@ -136,7 +133,7 @@ public class HCAStarPathFinder {
 		this.movedThisRound[agentIndex] = true; // 这一回合走过了
 		this.agentPaths.get(agentIndex).moveTo(currentAgent.getLocation()); // 原地踏了一步
 		waitTimes[agentIndex]++;
-		if (waitTimes[agentIndex] > 3) // 可以改成比较大的一个数，低于100
+		if (waitTimes[agentIndex] > 10) // 可以改成比较大的一个数，低于100
 			rebuildAgentPath(currentAgent);
 	}
 
@@ -146,7 +143,7 @@ public class HCAStarPathFinder {
 	 * @param kickedAgent 被踢的agent
 	 * @return 是否被踢成功
 	 */
-	private boolean goAway(Agent kickedAgent, Agent bullyAgent) {
+	private boolean goAway(Agent kickedAgent) {
 		Location nowLocation = kickedAgent.getLocation();
 		if (canPass(nowLocation.getRow() + 1, nowLocation.getColumn(), kickedAgent)) { // 如果下面可以通过
 			if (moveTo(kickedAgent, nowLocation.getRow() + 1, nowLocation.getColumn(), nowLocation)) { // 向下方移动一格

@@ -89,7 +89,7 @@ public class PathFinder {
 	 */
 	public Location generateLocationTree() {
 		Location endLocation = null;// 终点
-		openList = new ArrayList<Location>(); // 待处理的节点
+		openList = new ArrayList<Location>(); // 待拓展的节点
 		closedList = new ArrayList<Location>(); // 已处理过的节点
 		// 把起点放入open列表中
 		this.start.setG(0);

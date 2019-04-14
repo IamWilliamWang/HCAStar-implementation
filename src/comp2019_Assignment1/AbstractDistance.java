@@ -75,11 +75,11 @@ public class AbstractDistance {
 		if(currentLocation==null)
 			return null;
 		Predicate<Location> predicateSquare = // 找上下左右四个邻接
-				eleLoc -> (currentLocation.getColumn() == eleLoc.getColumn()
-						&& Math.abs(currentLocation.getRow() - eleLoc.getRow()) == 1)
-						|| (currentLocation.getRow() == eleLoc.getRow()
-								&& Math.abs(currentLocation.getColumn() - eleLoc.getColumn()) == 1);
-		Predicate<Location> predicateG = eleLoc -> eleLoc.getG() == g; // elementLocation.g要等于g
+				element -> (currentLocation.getColumn() == element.getColumn()
+						&& Math.abs(currentLocation.getRow() - element.getRow()) == 1)
+						|| (currentLocation.getRow() == element.getRow()
+								&& Math.abs(currentLocation.getColumn() - element.getColumn()) == 1);
+		Predicate<Location> predicateG = element -> element.getG() == g; // elementLocation.g要等于g
 		List<Location> locationsInList = myRRA.openList.stream().filter(predicateSquare).filter(predicateG)
 				.collect(Collectors.toList());
 		if (locationsInList.isEmpty()) { // open没找到，接着在closed里找
@@ -104,7 +104,7 @@ public class AbstractDistance {
 		return findRoundLocationByG(currentLocation, nextG);
 	}
 
-	public List<Location>getSuccessors(Location location) {
+	public List<Location> getSuccessors(Location location) {
 		return this.myRRA.getSuccessors(location);
 	}
 
